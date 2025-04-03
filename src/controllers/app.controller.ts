@@ -4,7 +4,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as path from 'path';
 import { FileMinSizeValidationPipe } from 'src/pipes/fileMinSizeValidationPipe';
-import * as fs from 'fs'
 
 @Controller()
 export class AppController {
@@ -38,22 +37,6 @@ export class AppController {
         'Content-Type': resizedFile.mimetype,
         'Content-Disposition': `attachment; filename="${resizedFile.originalname}"`,
       },
-    }, this.deleteGeneratedFiles(filePath));
-  }
-
-  private deleteGeneratedFiles(filePath: string) {
-    return (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-      }
-
-      fs.unlink(filePath, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error('Error deleting file:', unlinkErr);
-        } else {
-          console.log('File deleted successfully:', filePath);
-        }
-      });
-    };
+    });
   }
 }

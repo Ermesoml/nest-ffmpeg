@@ -4,10 +4,12 @@ import * as path from 'path';
 
 import { Piscina } from 'piscina';
 
+const MAX_THREADS = 3;
 
 @Injectable()
 export class AppService {
   private fibonacciWorkerPiscina = new Piscina({
+    maxThreads: MAX_THREADS,
     filename: path.join(__dirname, '/ffmpeg/ffmpeg.worker.js'),
   });
 
