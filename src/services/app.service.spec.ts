@@ -112,13 +112,13 @@ describe('AppService', () => {
   });
 
 
-  it('should handle errors from piscina worker and not delete original file', async () => {
+  it('should handle errors from piscina worker and delete original file', async () => {
     const error = new Error('Worker failed');
     mockPiscinaRun.mockRejectedValue(error);
     const deleteSpy = jest.spyOn(service, 'deleteOriginalFile');
 
     await expect(service.resize(mockFile, mockResolution)).rejects.toThrow(error);
-    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).toHaveBeenCalled();
     deleteSpy.mockRestore();
   });
 

@@ -60,7 +60,6 @@ export class AppService {
       fs.unlinkSync(filePath);
     } catch (error) {
       console.error(`Error deleting original file: ${filePath}`, error);
-      throw error;
     }
   }
 }

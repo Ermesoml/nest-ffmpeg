@@ -76,13 +76,17 @@ describe('AppController', () => {
 
       await controller.uploadFile(mockFile, resolution, mockResponse as unknown as Response);
 
-      expect(mockResponse.sendFile).toHaveBeenCalledWith(expectedFilePath, {
-        headers: {
-          'Content-Type': resizedFileInfo.mimetype,
-          'Content-Disposition': `attachment; filename="${resizedFileInfo.originalname}"`,
-        },
-      });
-    });
+       expect(mockResponse.sendFile).toHaveBeenCalledWith(
+         expectedFilePath,
+         {
+           headers: {
+             'Content-Type': resizedFileInfo.mimetype,
+             'Content-Disposition': `attachment; filename="${resizedFileInfo.originalname}"`,
+           },
+         },
+         expect.any(Function), // Expect a third argument (callback function)
+       );
+     });
 
     it('should handle errors from AppService.resize', async () => {
       const error = new Error('Resize failed');
@@ -124,12 +128,16 @@ describe('AppController', () => {
        await controller.uploadFile(mockFile, validResolution, mockResponse as unknown as Response);
 
        expect(service.resize).toHaveBeenCalledWith(mockFile, validResolution);
-       expect(mockResponse.sendFile).toHaveBeenCalledWith(expectedValidPath, {
-         headers: {
-           'Content-Type': resizedFileInfo.mimetype,
-           'Content-Disposition': `attachment; filename="test_${validResolution}.mp4"`,
-         },
-       });
-    });
-  });
+        expect(mockResponse.sendFile).toHaveBeenCalledWith(
+          expectedValidPath,
+          {
+            headers: {
+              'Content-Type': resizedFileInfo.mimetype,
+              'Content-Disposition': `attachment; filename="test_${validResolution}.mp4"`,
+            },
+          },
+          expect.any(Function), // Expect a third argument (callback function)
+        );
+     });
+   });
 });
