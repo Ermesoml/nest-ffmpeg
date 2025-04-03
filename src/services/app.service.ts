@@ -25,26 +25,34 @@ export class AppService {
 
     const { fieldname, encoding, mimetype } = file
 
-    await this.fibonacciWorkerPiscina.run({
-      filePath,
-      outputPath,
-      resolution
-    })
+    try {
+      await this.fibonacciWorkerPiscina.run({
+        filePath,
+        outputPath,
+        resolution
+      });
 
-    await this.deleteOriginalFile(filePath);
+      const resizedFile = {
+        fieldname,
+        originalname: outputFileName,
+        encoding,
+        mimetype,
+        destination: outputDir,
+        filename: outputFileName,
+        path: outputPath,
+        size: fs.statSync(outputPath).size,
+      }
+      await this.deleteOriginalFile(filePath);
 
-    const resizedFile = {
-      fieldname,
-      originalname: outputFileName,
-      encoding,
-      mimetype,
-      destination: outputDir,
-      filename: outputFileName,
-      path: outputPath,
-      size: fs.statSync(outputPath).size,
+      return resizedFile;
+    } catch (error) {
+      try {
+        await this.deleteOriginalFile(filePath);
+      } catch (deleteError) {
+        console.error(`Error deleting original file after resize failure: ${filePath}`, deleteError);
+      }
+      throw error;
     }
-
-    return resizedFile;
   }
 
   async deleteOriginalFile(filePath: string): Promise<void> {
@@ -52,6 +60,7 @@ export class AppService {
       fs.unlinkSync(filePath);
     } catch (error) {
       console.error(`Error deleting original file: ${filePath}`, error);
+      throw error;
     }
   }
 }
