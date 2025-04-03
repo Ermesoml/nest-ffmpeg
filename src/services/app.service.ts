@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
-import * as fluentffmpeg from 'fluent-ffmpeg';
-fluentffmpeg.setFfmpegPath(ffmpegPath);
+
+import { Piscina } from 'piscina';
 
 
 @Injectable()
 export class AppService {
+  private fibonacciWorkerPiscina = new Piscina({
+    filename: path.join(__dirname, '/ffmpeg/ffmpeg.worker.js'),
+  });
+
   async resize(file: Express.Multer.File, resolution: string): Promise<any> {
     const { originalname, path: filePath } = file;
     const outputDir = 'resized-videos';
@@ -20,27 +23,23 @@ export class AppService {
     const outputFileName = `${fileNameWithoutExtension}_${resolution}${fileExtension}`;
     const outputPath = path.join(outputDir, outputFileName);
 
-    return new Promise((resolve, reject) => {
-      fluentffmpeg(filePath)
-        .output(outputPath)
-        .size(resolution)
-        .on('end', () => {
-          resolve({
-            fieldname: file.fieldname,
-            originalname: outputFileName,
-            encoding: file.encoding,
-            mimetype: file.mimetype,
-            destination: outputDir,
-            filename: outputFileName,
-            path: outputPath,
-            size: fs.statSync(outputPath).size,
-          });
-        })
-        .on('error', (err) => {
-          console.error('ffmpeg error:', err);
-          reject(err);
-        })
-        .run();
-    });
+    const { fieldname, encoding, mimetype } = file
+
+    await this.fibonacciWorkerPiscina.run({
+      filePath,
+      outputPath,
+      resolution
+    })
+
+    return {
+      fieldname,
+      originalname: outputFileName,
+      encoding,
+      mimetype,
+      destination: outputDir,
+      filename: outputFileName,
+      path: outputPath,
+      size: fs.statSync(outputPath).size,
+    }
   }
 }

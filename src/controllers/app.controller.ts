@@ -2,11 +2,11 @@ import { Body, Controller, Get, Post, Res, UploadedFile, UseInterceptors } from 
 import { AppService } from '../services/app.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import * as path from 'path';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
-
 
   @Post('resize')
   @UseInterceptors(FileInterceptor('file'))
@@ -15,17 +15,13 @@ export class AppController {
     @Body('resolution') resolution: string,
     @Res() res: Response,
   ) {
-    try {
-      const resizedFile = await this.appService.resize(file, resolution);
-      res.sendFile(resizedFile.path, {
-        headers: {
-          'Content-Type': resizedFile.mimetype,
-          'Content-Disposition': `attachment; filename="${resizedFile.originalname}"`,
-        },
-      });
-    } catch (error) {
-      console.error('Error during resizing:', error);
-      return res.status(500).json({ message: 'Failed to resize video.' });
-    }
+    const resizedFile = await this.appService.resize(file, resolution);
+    const filePath = path.join(process.cwd(), resizedFile.path);
+    res.sendFile(filePath, {
+      headers: {
+        'Content-Type': resizedFile.mimetype,
+        'Content-Disposition': `attachment; filename="${resizedFile.originalname}"`,
+      },
+    });
   }
 }
