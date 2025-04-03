@@ -31,7 +31,9 @@ export class AppService {
       resolution
     })
 
-    return {
+    await this.deleteOriginalFile(filePath);
+
+    const resizedFile = {
       fieldname,
       originalname: outputFileName,
       encoding,
@@ -40,6 +42,16 @@ export class AppService {
       filename: outputFileName,
       path: outputPath,
       size: fs.statSync(outputPath).size,
+    }
+
+    return resizedFile;
+  }
+
+  async deleteOriginalFile(filePath: string): Promise<void> {
+    try {
+      fs.unlinkSync(filePath);
+    } catch (error) {
+      console.error(`Error deleting original file: ${filePath}`, error);
     }
   }
 }
